@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
 
 
 import numpy as np # linear algebra
@@ -32,7 +31,7 @@ os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 torch.cuda.empty_cache()
 
 
-# In[2]:
+
 
 
 torch.__version__
@@ -43,8 +42,8 @@ os.listdir(train_dir)[:5]
 os.listdir(test_dir)[:5]
 
 
-# In[3]:
 
+# test if picture can use successfully
 
 train_list = glob.glob(os.path.join(train_dir, '*.jpg'))
 test_list = glob.glob(os.path.join(test_dir, '*.jpg'))
@@ -58,32 +57,8 @@ plt.axis('off')
 plt.show()
 
 
-# In[4]:
 
 
-class ImageTransform():
-    
-    def __init__(self, resize, mean, std):
-        self.data_transform = {
-            'train': transforms.Compose([
-                transforms.RandomResizedCrop(resize, scale=(0.5, 1.0)),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(mean, std)
-            ]),
-            'test': transforms.Compose([
-               transforms.Resize(255),
-                transforms.CenterCrop(resize),
-                transforms.ToTensor(),
-                transforms.Normalize(mean, std)
-            ])
-        }
-        
-    def __call__(self, img, phase):
-        return self.data_transform[phase](img)
-
-
-# In[5]:
 
 
 # trasform
@@ -113,7 +88,6 @@ class newImageTransform():
         return self.data_transform[phase](img)
 
 
-# In[6]:
 
 
 # build label_dict
@@ -126,7 +100,6 @@ for line in lines:
 label_dict
 
 
-# In[7]:
 
 
 # spilt train data and test data 
@@ -142,7 +115,7 @@ print('Valid data set:', len(valid_set))
 # In[8]:
 
 
-# Dataset
+# Dataset function 
 class PartDataset(data.Dataset):
     
     def __init__(self, label_dict, file_list, transform=None, phase='train'):
@@ -165,22 +138,20 @@ class PartDataset(data.Dataset):
         return img_transformed, label
 
 
-# In[9]:
 
 
 # setting
 size = 224
 mean = (0.485, 0.456, 0.406)
 std = (0.229, 0.224, 0.225)
-# mean = (0.5, 0.5, 0.5)
-# std = (0.5, 0.5, 0.5)
+
 
 batch_size = 1
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 device
 
 
-# In[10]:
+# transform by newImageTransform()
 
 
 train_dataset = PartDataset(label_dict, train_list, transform=newImageTransform(size, mean, std), phase='train')
@@ -190,10 +161,9 @@ test_dataset = PartDataset(label_dict, test_list, transform=newImageTransform(si
 # In[11]:
 
 
-# DataLoader
+# DataLoader using train_dataset and test_dataset
 train_dataloader = data.DataLoader(train_dataset, batch_size=16, shuffle=True)
 test_dataloader = data.DataLoader(test_dataset, batch_size=16, shuffle=False)
-
 dataloader_dict = {'train': train_dataloader, 'test': test_dataloader}
 
 # Operation Check
@@ -204,7 +174,7 @@ print(inputs.size())
 print(label)
 
 
-# In[12]:
+
 
 
 # build net with pretrain modal
@@ -220,22 +190,21 @@ net.fc = nn.Sequential(
     nn.Dropout(0.5),
     nn.Linear(1024, num_classes)
 )
-# num_ftrs = net.fc.in_features
-# net.fc = nn.Linear(num_ftrs, 200)
+
 
 net
 
 
-# In[13]:
+
 
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(params=net.parameters(), lr=0.001, momentum=0.9)
 
 
-# In[14]:
 
 
+# training and evaluation code
 import time
 def train_model(net, dataloader_dict, criterion, optimizer, num_epoch):
     
@@ -260,12 +229,12 @@ def train_model(net, dataloader_dict, criterion, optimizer, num_epoch):
             
             for inputs, labels in tqdm(dataloader_dict[phase]):
                 inputs = inputs.to(device)
-#                 print(type(labels))
+
                
                 labelsArr = []
                 
                 for tmplabel in (labels):
-#                     print(tmplabel)
+
                     labelsArr.append(int(tmplabel.split(".")[0])-1)
                 labels = torch.tensor(labelsArr).to(device)
                 
@@ -313,7 +282,7 @@ def train_model(net, dataloader_dict, criterion, optimizer, num_epoch):
     return net
 
 
-# In[15]:
+
 
 
 import matplotlib.pyplot as plt
@@ -334,7 +303,6 @@ num_epoch = 60
 net = train_model(net, dataloader_dict, criterion, optimizer, num_epoch)
 
 
-# In[17]:
 
 
 # check  convergence
@@ -356,7 +324,6 @@ net.to(device)
 net.eval()
 
 
-# In[19]:
 
 
 # load the checkpoint
@@ -370,7 +337,6 @@ with open('./2021VRDL_HW1_datasets/testing_img_order.txt') as f:
 print(testorder)
 
 
-# In[20]:
 
 
 def img_transform(img_rgb, transform=None):
@@ -388,14 +354,13 @@ def img_transform(img_rgb, transform=None):
     return img_t
 
 
-# In[21]:
+
 
 
 # predict and make file
 norm_mean = (0.485, 0.456, 0.406)
 norm_std = (0.229, 0.224, 0.225)
-# norm_mean = [0.5, 0.5, 0.5]
-# norm_std = [0.5, 0.5, 0.5]
+
 
 inference_transform = transforms.Compose([
     transforms.Resize(256),
@@ -409,7 +374,7 @@ path = 'answer.txt'
 f = open(path, 'w')
 
 with torch.no_grad():
-#         print(classes)
+
         for  img_name in testorder:
             print(img_name)
             path_img ='./2021VRDL_HW1_datasets/testing_images/'+img_name
@@ -426,12 +391,11 @@ with torch.no_grad():
             
              # step 4/4 : visualization
             _, pred_int = torch.max(outputs.data, 1)
-#             print(int(pred_int))
             if(pred_int >= 200):
                 pred_int=0
                 print(int(pred_int))
             
-#             print(classes[int(pred_int)])
+
             pred_str = classes[int(pred_int)]
         
             f.write(img_name)           
@@ -442,7 +406,6 @@ with torch.no_grad():
 f.close()
 
 
-# In[ ]:
 
 
 
