@@ -3,7 +3,7 @@
 
 ## Hardware
 ● Windows 10 <br>
-● Intel(R) Core i7-7700HQ CPU @ 4.00GHz <br>
+● Intel(R) Core i7-7700HQ CPU  <br>
 ● NVIDIA GeForce GTX 1050 Ti <br>
 
 ## Introduction and details
@@ -67,7 +67,10 @@ I put the AutoAugment to transforms the data which is `newImageTransform()` <br>
     optimizer = optim.SGD(params=net.parameters(), lr=0.001, momentum=0.9)
    
 It let the accuracy increase a lot, when my model is stuck. <br>
-           
+ 
+## Training 
+Taking training in `train_model()`<br>
+    
                         
 ## Load-Model
 After processing every epoch, you need to save the model, in oder to avoid the model breaking. <br>   
