@@ -11,6 +11,7 @@ from PIL import Image
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm_notebook as tqdm
 from tqdm.notebook import tqdm
+from autoaugment import ImageNetPolicy
 
 import torch
 import torch.nn as nn
@@ -61,14 +62,15 @@ plt.show()
 
 
 
-# trasform
+# trasform with ImageNetPolicy in autoaugment
 class newImageTransform():
     
     def __init__(self, resize, mean, std):
         self.data_transform = {
             'train': transforms.Compose([
+                ImageNetPolicy(),
                 transforms.Resize(256),
-                   torchvision.transforms.RandomOrder([
+                torchvision.transforms.RandomOrder([
                    torchvision.transforms.RandomCrop((256, 256)),
                    torchvision.transforms.RandomHorizontalFlip(),
                    torchvision.transforms.RandomVerticalFlip()
@@ -77,6 +79,7 @@ class newImageTransform():
                 torchvision.transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             ]),
             'test': transforms.Compose([
+                ImageNetPolicy(),
                 transforms.Resize(256),
                 torchvision.transforms.CenterCrop((256, 256)),
                 torchvision.transforms.ToTensor(),
@@ -112,7 +115,7 @@ test_list = valid_set
 print('Valid data set:', len(valid_set))
 
 
-# In[8]:
+
 
 
 # Dataset function 
@@ -158,7 +161,7 @@ train_dataset = PartDataset(label_dict, train_list, transform=newImageTransform(
 test_dataset = PartDataset(label_dict, test_list, transform=newImageTransform(size, mean, std), phase='test')
 
 
-# In[11]:
+
 
 
 # DataLoader using train_dataset and test_dataset
@@ -295,7 +298,6 @@ ytestAcc=[]
 ytest=[]
 
 
-# In[16]:
 
 
 # train
@@ -315,7 +317,6 @@ plt.legend()
 plt.show()
 
 
-# In[18]:
 
 
 # save the checkpoint
@@ -340,15 +341,10 @@ print(testorder)
 
 
 def img_transform(img_rgb, transform=None):
-    """
-    将数据转换为模型读取的形式
-    :param img_rgb: PIL Image
-    :param transform: torchvision.transform
-    :return: tensor
-    """
+  
 
     if transform is None:
-        raise ValueError("找不到transform！必须有transform对img进行处理")
+        raise ValueError("cant find transform")
 
     img_t = transform(img_rgb)
     return img_t
